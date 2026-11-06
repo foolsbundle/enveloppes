@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Enveloppes">
+<meta name="theme-color" content="#FDFBF5">
+<title>Enveloppes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --fond:#FDFBF5; --texte:#1C1C1C; --doux:#6B6860; --gris:#ECE8DC; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { background:var(--fond); color:var(--texte); font-family:'Open Sans',sans-serif; -webkit-tap-highlight-color:transparent; }
+  body { padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 96px); max-width:520px; margin:0 auto; }
+  h1 { font-family:'Lora',serif; font-weight:700; font-size:34px; line-height:1.1; }
+  .seg { display:flex; gap:8px; margin:14px 0 4px; }
+  .seg button { flex:1; border:0; padding:11px; border-radius:14px; font:600 15px 'Open Sans',sans-serif; background:var(--gris); color:var(--texte); }
+  .seg button.on { background:var(--texte); color:#fff; }
+  .bandeau { margin-top:12px; padding:12px 14px; border-radius:14px; background:var(--texte); color:#fff; font-size:14px; }
+  .env { margin-top:14px; }
+  .bar { position:relative; height:88px; border-radius:18px; overflow:hidden; color:#fff; }
+  .fill { position:absolute; left:0; top:0; bottom:0; border-radius:18px; }
+  .hachures { position:absolute; inset:0; background:repeating-linear-gradient(135deg,rgba(255,255,255,.28) 0 6px,transparent 6px 14px); }
+  .rythme { position:absolute; top:0; bottom:0; width:1px; background:#fff; }
+  .nom { position:absolute; left:16px; top:12px; font-weight:600; font-size:15px; }
+  .depense { position:absolute; left:16px; bottom:12px; font-size:15px; }
+  .reste { position:absolute; right:16px; bottom:6px; font-family:'Lora',serif; font-weight:700; font-size:34px; line-height:1.1; }
+  .poche { font-size:12px; color:var(--doux); margin:5px 0 0 6px; }
+  nav { position:fixed; left:0; right:0; bottom:0; background:var(--fond); border-top:1px solid var(--gris); padding:10px 24px calc(env(safe-area-inset-bottom) + 10px); display:flex; justify-content:space-between; align-items:center; }
+  nav button { border:0; background:none; font-size:24px; color:var(--texte); width:44px; height:44px; }
+  nav button.off { opacity:.35; }
+  nav .plus { background:var(--texte); color:#fff; border-radius:14px; }
+  .centre { text-align:center; margin-top:30vh; color:var(--doux); }
+  .code { margin-top:24vh; }
+  .code p { color:var(--doux); margin:10px 0 18px; }
+  .code input { width:100%; padding:14px; font-size:18px; border:1px solid #C9C3B3; border-radius:14px; background:#fff; }
+  .cta { width:100%; margin-top:12px; padding:14px; border:0; border-radius:16px; background:var(--texte); color:#fff; font:600 16px 'Open Sans',sans-serif; }
+  .erreur { color:#B3261E; font-size:14px; margin-top:10px; min-height:20px; }
+  .toast { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 84px); transform:translateX(-50%); background:var(--texte); color:#fff; padding:10px 16px; border-radius:12px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; }
+  .toast.on { opacity:1; }
+</style>
+</head>
+<body>
+<div id="app"><p class="centre">Chargement…</p></div>
+<nav id="nav" hidden>
+  <button aria-label="Accueil"><i>⌂</i></button>
+  <button class="off" aria-label="Liste du mois" data-bientot>☰</button>
+  <button class="plus" aria-label="Nouvelle dépense" data-bientot>+</button>
+  <button class="off" aria-label="Fin de mois" data-bientot>✓</button>
+  <button class="off" aria-label="Réglages" data-bientot>⚙</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+// Adresse du comptoir (Apps Script). Elle n'est pas secrète : c'est le code secret qui protège les données.
+const COMPTOIR = 'https://script.google.com/macros/s/AKfycbwU9rxuZbYvl8JRJema1DNDQ9SZ4kQIQ2fVuhPSg957D4jAl7d0mvUbE-GkNRHASaX1UQ/exec';
+const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+// Petite mémoire du téléphone (le code secret et le dernier onglet). Si elle est effacée, l'app redemande le code.
+const memoire = {
+  lire(cle) { try { return localStorage.getItem(cle); } catch (e) { return null; } },
+  ecrire(cle, v) { try { localStorage.setItem(cle, v); } catch (e) {} },
+  effacer(cle) { try { localStorage.removeItem(cle); } catch (e) {} }
+};
+
+let etat = null;
+let compte = memoire.lire('compte') || 'Perso';
+const app = document.getElementById('app');
+
+async function demander(action, donnees) {
+  const reponse = await fetch(COMPTOIR, {
+    method: 'POST',
+    body: JSON.stringify({ code: memoire.lire('code'), action, donnees: donnees || {} })
+  });
+  const r = await reponse.json();
+  if (!r.ok) throw new Error(r.erreur || 'Erreur inconnue');
+  return r;
+}
+
+function euros(n) {
+  const arrondi = Math.round(n * 100) / 100;
+  return arrondi.toLocaleString('fr-FR', { minimumFractionDigits: Number.isInteger(arrondi) ? 0 : 2, maximumFractionDigits: 2 }) + '€';
+}
+
+function griser(hex) {
+  const c = [1, 3, 5].map(i => parseInt(hex.substr(i, 2), 16));
+  return '#' + c.map(v => Math.round(v * 0.5 + 138 * 0.5).toString(16).padStart(2, '0')).join('');
+}
+
+function nomMois(m) { return MOIS[Number(m.slice(5, 7)) - 1]; }
+
+function joursDansMois(m) { const [a, mm] = m.split('-').map(Number); return new Date(a, mm, 0).getDate(); }
+
+// Où on en est dans le mois ouvert : jour du mois ÷ nombre de jours. 100 % si le mois est terminé.
+function rythme() {
+  const m = etat.moisOuvert, auj = etat.aujourdhui;
+  if (auj.slice(0, 7) > m) return 100;
+  return Number(auj.slice(8, 10)) / joursDansMois(m) * 100;
+}
+
+function afficherCode(message) {
+  document.getElementById('nav').hidden = true;
+  app.innerHTML = `<div class="code"><h1>Bonjour Marie</h1><p>Entre ton code secret. Il ne te sera demandé qu'une fois sur ce téléphone.</p>
+    <input id="champ" type="password" autocomplete="current-password" placeholder="Code secret">
+    <button class="cta" id="valider">Entrer</button><p class="erreur" id="err">${message || ''}</p></div>`;
+  const valider = () => {
+    const v = document.getElementById('champ').value.trim();
+    if (!v) { document.getElementById('err').textContent = 'Entre ton code d\'abord.'; return; }
+    memoire.ecrire('code', v);
+    charger();
+  };
+  document.getElementById('valider').onclick = valider;
+  document.getElementById('champ').onkeydown = e => { if (e.key === 'Enter') valider(); };
+}
+
+async function charger() {
+  if (!memoire.lire('code')) return afficherCode();
+  try {
+    etat = await demander('etat');
+    afficherAccueil();
+  } catch (e) {
+    if (e.message === 'Code incorrect.') { memoire.effacer('code'); return afficherCode('Code incorrect. Réessaie.'); }
+    app.innerHTML = `<p class="centre">Impossible de joindre le comptoir.<br>${e.message}</p><button class="cta" onclick="charger()">Réessayer</button>`;
+  }
+}
+
+function afficherAccueil() {
+  document.getElementById('nav').hidden = false;
+  const m = etat.moisOuvert;
+  const aCloturer = etat.aujourdhui.slice(0, 7) > m;
+  const pos = rythme();
+  const enveloppes = etat.enveloppes.filter(e => e.active && e.compte === compte).sort((a, b) => a.ordre - b.ordre);
+  const lieuPoche = compte === 'Perso' ? 'Poche Livret A' : 'Poche livret commun';
+
+  let html = `<h1>${nomMois(m).charAt(0).toUpperCase() + nomMois(m).slice(1)}</h1>`;
+  if (aCloturer) html += `<div class="bandeau">Clôture de ${nomMois(m)} à faire</div>`;
+  html += `<div class="seg"><button data-compte="Perso" class="${compte === 'Perso' ? 'on' : ''}">Perso</button><button data-compte="Commun" class="${compte === 'Commun' ? 'on' : ''}">Commun</button></div>`;
+
+  enveloppes.forEach(e => {
+    const depense = etat.depenses.filter(d => d.mois === m && d.enveloppe === e.id).reduce((s, d) => s + d.montant, 0);
+    const reste = e.budget - depense;
+    const depasse = reste < 0;
+    const largeur = e.budget > 0 ? Math.min(100, depense / e.budget * 100) : (depense > 0 ? 100 : 0);
+    html += `<div class="env"><div class="bar" style="background:${griser(e.couleur)}">
+      <div class="fill" style="width:${largeur}%;background:${e.couleur}"></div>
+      ${depasse ? '<div class="hachures"></div>' : ''}
+      <div class="rythme" style="left:${pos}%"></div>
+      <div class="nom">${e.nom} - ${euros(e.budget)}</div>
+      <div class="depense">${euros(depense)}</div>
+      <div class="reste">${depasse ? '−' : ''}${euros(Math.abs(reste))}</div></div>`;
+    if (e.type === 'tirelire') {
+      const poche = etat.poches.find(p => p.enveloppe === e.id);
+      html += `<p class="poche">${lieuPoche} : ${euros(poche ? poche.solde : 0)}</p>`;
+    }
+    html += `</div>`;
+  });
+  app.innerHTML = html;
+  app.querySelectorAll('[data-compte]').forEach(b => b.onclick = () => {
+    compte = b.dataset.compte; memoire.ecrire('compte', compte); afficherAccueil();
+  });
+}
+
+function toast(texte) {
+  const t = document.getElementById('toast');
+  t.textContent = texte; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 1800);
+}
+document.querySelectorAll('[data-bientot]').forEach(b => b.onclick = () => toast('Arrive à la prochaine étape'));
+document.querySelector('nav button').onclick = () => charger();
+
+// Recharge les chiffres quand on revient sur l'app.
+document.addEventListener('visibilitychange', () => { if (!document.hidden && etat) charger(); });
+
+charger();
+</script>
+</body>
+</html>
