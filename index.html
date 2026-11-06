@@ -4,20 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Enveloppes">
 <meta name="theme-color" content="#FDFBF5">
 <title>Enveloppes</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root { --fond:#FDFBF5; --texte:#1C1C1C; --doux:#6B6860; --gris:#ECE8DC; }
+  :root { --fond:#FDFBF5; --texte:#1C1C1C; --doux:#6B6860; --gris:#ECE8DC; --ligne:#E4DFD2; }
   * { box-sizing:border-box; margin:0; padding:0; }
   html, body { background:var(--fond); color:var(--texte); font-family:'Open Sans',sans-serif; -webkit-tap-highlight-color:transparent; }
   body { padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 96px); max-width:520px; margin:0 auto; }
   h1 { font-family:'Lora',serif; font-weight:700; font-size:34px; line-height:1.1; }
-  button { font-family:inherit; color:inherit; }
+  h2 { font-family:'Lora',serif; font-weight:700; font-size:20px; margin:26px 0 4px; }
+  button { font-family:inherit; color:inherit; cursor:pointer; }
   .seg { display:flex; gap:8px; margin:14px 0 4px; }
   .seg button { flex:1; border:0; padding:11px; border-radius:14px; font:600 15px 'Open Sans',sans-serif; background:var(--gris); color:var(--texte); }
   .seg button.on { background:var(--texte); color:#fff; }
@@ -32,20 +37,37 @@
   .reste { position:absolute; right:16px; bottom:6px; font-family:'Lora',serif; font-weight:700; font-size:34px; line-height:1.1; }
   .poche { font-size:12px; color:var(--doux); margin:5px 0 0 6px; }
   nav { position:fixed; left:0; right:0; bottom:0; background:var(--fond); border-top:1px solid var(--gris); padding:10px 24px calc(env(safe-area-inset-bottom) + 10px); display:flex; justify-content:space-between; align-items:center; z-index:5; }
-  nav button { border:0; background:none; width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--texte); }
-  nav button.off { opacity:.35; }
-  nav .plus { background:var(--texte); color:#fff; border-radius:14px; }
+  nav button { border:0; background:none; width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--texte); opacity:.35; }
+  nav button.actif { opacity:1; }
+  nav .plus { background:var(--texte); color:#fff; border-radius:14px; opacity:1; }
   svg.ic { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  svg.pt { width:20px; height:20px; }
   .centre { text-align:center; margin-top:30vh; color:var(--doux); }
   .code { margin-top:24vh; }
   .code p { color:var(--doux); margin:10px 0 18px; }
   input.champ { width:100%; padding:14px; font:16px 'Open Sans',sans-serif; border:1px solid #C9C3B3; border-radius:14px; background:#fff; color:var(--texte); }
   .cta { width:100%; margin-top:12px; padding:15px; border:0; border-radius:16px; background:var(--texte); color:#fff; font:600 16px 'Open Sans',sans-serif; }
   .cta:disabled { opacity:.5; }
+  .cta.clair { background:var(--gris); color:var(--texte); }
   .erreur { color:#B3261E; font-size:14px; margin-top:10px; min-height:20px; }
   .toast { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 84px); transform:translateX(-50%); background:var(--texte); color:#fff; padding:10px 16px; border-radius:12px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:20; white-space:nowrap; }
   .toast.on { opacity:1; }
-  /* Nouvelle dépense */
+  /* Listes */
+  .ligne { display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--ligne); font-size:14px; }
+  .carre { width:32px; height:32px; border-radius:9px; flex:none; }
+  .ligne .txt { flex:1; min-width:0; }
+  .ligne .titre { font-weight:600; }
+  .ligne .sous { font-size:12px; color:var(--doux); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ligne .val { font-weight:600; white-space:nowrap; }
+  .icone { border:0; background:none; width:36px; height:36px; display:flex; align-items:center; justify-content:center; opacity:.6; flex:none; }
+  .tag { font-size:11px; padding:2px 8px; border-radius:8px; background:var(--gris); white-space:nowrap; }
+  .confirmer { display:flex; gap:6px; }
+  .confirmer button { border:0; border-radius:10px; padding:8px 12px; font:600 13px 'Open Sans',sans-serif; }
+  .total { display:flex; justify-content:space-between; font-weight:600; font-size:14px; margin-top:12px; }
+  .vide { color:var(--doux); font-size:14px; margin-top:24px; text-align:center; }
+  .ajout-env { width:100%; border:1.5px dashed #C9C3B3; background:none; border-radius:14px; padding:12px; margin-top:12px; font:14px 'Open Sans',sans-serif; color:var(--doux); }
+  .note { font-size:12px; color:var(--doux); margin-top:6px; }
+  /* Feuilles (formulaires plein écran) */
   .feuille { position:fixed; inset:0; background:var(--fond); z-index:10; overflow-y:auto; padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px); }
   .feuille .interieur { max-width:520px; margin:0 auto; }
   .entete { display:flex; justify-content:space-between; align-items:center; }
@@ -58,6 +80,9 @@
   .grille { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
   .pastille { position:relative; border:0; border-radius:14px; padding:12px 30px 12px 12px; color:#fff; font:600 13px 'Open Sans',sans-serif; text-align:left; min-height:46px; }
   .pastille .coche { position:absolute; right:10px; top:50%; transform:translateY(-50%); }
+  .nuancier { display:flex; flex-wrap:wrap; gap:8px; }
+  .nuancier button { width:38px; height:38px; border-radius:10px; border:3px solid transparent; }
+  .nuancier button.on { border-color:var(--texte); }
   input[type=date].champ { -webkit-appearance:none; appearance:none; min-height:48px; }
 </style>
 </head>
@@ -65,11 +90,11 @@
 <div id="app"><p class="centre">Chargement…</p></div>
 <div id="feuille"></div>
 <nav id="nav" hidden>
-  <button aria-label="Accueil" id="btn-accueil"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></button>
-  <button class="off" aria-label="Liste du mois" data-bientot><svg class="ic" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+  <button aria-label="Accueil" data-vue="accueil"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></button>
+  <button aria-label="Liste du mois" data-vue="liste"><svg class="ic" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
   <button class="plus" aria-label="Nouvelle dépense" id="btn-ajouter"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-  <button class="off" aria-label="Fin de mois" data-bientot><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M9 13l2 2 4-4"/></svg></button>
-  <button class="off" aria-label="Réglages" data-bientot><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+  <button aria-label="Fin de mois" id="btn-fin"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M9 13l2 2 4-4"/></svg></button>
+  <button aria-label="Réglages" data-vue="reglages"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
 </nav>
 <div class="toast" id="toast"></div>
 
@@ -77,9 +102,15 @@
 // Adresse du comptoir (Apps Script). Elle n'est pas secrète : c'est le code secret qui protège les données.
 const COMPTOIR = 'https://script.google.com/macros/s/AKfycbwU9rxuZbYvl8JRJema1DNDQ9SZ4kQIQ2fVuhPSg957D4jAl7d0mvUbE-GkNRHASaX1UQ/exec';
 const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-const COCHE = '<svg class="ic coche" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5L20 7"/></svg>';
+const PALETTE = ['#FF340C','#E0070F','#F03172','#E990A2','#FFAE00','#CAC307','#A1B5E6','#0F4A42','#273287','#181A4D','#441B07'];
+const SVG = {
+  coche: '<svg class="ic coche" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5L20 7"/></svg>',
+  crayon: '<svg class="ic pt" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  poubelle: '<svg class="ic pt" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg>',
+  fermer: '<svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+};
 
-// Petite mémoire du téléphone (le code secret et le dernier onglet). Si elle est effacée, l'app redemande le code.
+// Petite mémoire du téléphone (code secret, dernier onglet). Si elle est effacée, l'app redemande le code.
 const memoire = {
   lire(cle) { try { return localStorage.getItem(cle); } catch (e) { return null; } },
   ecrire(cle, v) { try { localStorage.setItem(cle, v); } catch (e) {} },
@@ -87,9 +118,15 @@ const memoire = {
 };
 
 let etat = null;
-let compte = memoire.lire('compte') || 'Perso';
+let vue = 'accueil';
+let compte = memoire.lire('compte') || 'Perso';      // onglet de l'accueil et des réglages
+let filtre = memoire.lire('filtre') || 'Tout';         // filtre de la liste
+let aConfirmer = null;                                 // dépense en attente de confirmation de suppression
+let premierChargement = true;
 const app = document.getElementById('app');
 const feuille = document.getElementById('feuille');
+
+/* ---------- Outils ---------- */
 
 async function demander(action, donnees) {
   const reponse = await fetch(COMPTOIR, {
@@ -99,6 +136,10 @@ async function demander(action, donnees) {
   const r = await reponse.json();
   if (!r.ok) throw new Error(r.erreur || 'Erreur inconnue');
   return r;
+}
+
+function messageErreur(e) {
+  return (e.message === 'Failed to fetch' || e.message === 'Load failed') ? 'Pas de connexion. Réessaie.' : e.message;
 }
 
 function euros(n) {
@@ -115,16 +156,28 @@ function echapper(t) { return String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;',
 function nomMois(m) { return MOIS[Number(m.slice(5, 7)) - 1]; }
 function majuscule(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
 function joursDansMois(m) { const [a, mm] = m.split('-').map(Number); return new Date(a, mm, 0).getDate(); }
+function dateCourte(d) { return d.slice(8, 10) + '/' + d.slice(5, 7); }
+function nombre(v) { return Number(String(v).replace(/\s/g, '').replace(',', '.')); }
 
-// Où on en est dans le mois ouvert : jour du mois ÷ nombre de jours. 100 % si le mois est terminé.
 function rythme() {
   const m = etat.moisOuvert, auj = etat.aujourdhui;
   if (auj.slice(0, 7) > m) return 100;
   return Number(auj.slice(8, 10)) / joursDansMois(m) * 100;
 }
 
-function enveloppesDe(c) {
-  return etat.enveloppes.filter(e => e.active && e.compte === c).sort((a, b) => a.ordre - b.ordre);
+function enveloppesDe(c, toutes) {
+  return etat.enveloppes.filter(e => (toutes || e.active) && e.compte === c).sort((a, b) => a.ordre - b.ordre);
+}
+function enveloppe(id) { return etat.enveloppes.find(e => e.id === id); }
+
+function toast(texte) {
+  const t = document.getElementById('toast');
+  t.textContent = texte; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 1800);
+}
+
+function segment(valeurs, actuelle, attribut) {
+  return `<div class="seg">${valeurs.map(v => `<button ${attribut}="${v}" class="${v === actuelle ? 'on' : ''}">${v}</button>`).join('')}</div>`;
 }
 
 /* ---------- Code secret ---------- */
@@ -144,24 +197,40 @@ function afficherCode(message) {
   document.getElementById('champ').onkeydown = e => { if (e.key === 'Enter') valider(); };
 }
 
-/* ---------- Chargement ---------- */
+/* ---------- Chargement et navigation ---------- */
 
 async function charger() {
   if (!memoire.lire('code')) return afficherCode();
   try {
     etat = await demander('etat');
-    afficherAccueil();
-    if (location.hash === '#ajouter') { history.replaceState(null, '', location.pathname); ouvrirAjout(); }
+    afficher();
+    // Ouverture depuis l'icône de l'écran d'accueil : on va directement à la saisie.
+    const depuisIcone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    if (premierChargement && (depuisIcone || location.hash === '#ajouter')) {
+      if (location.hash) history.replaceState(null, '', location.pathname);
+      ouvrirDepense();
+    }
+    premierChargement = false;
   } catch (e) {
     if (e.message === 'Code incorrect.') { memoire.effacer('code'); return afficherCode('Code incorrect. Réessaie.'); }
-    app.innerHTML = `<p class="centre">Impossible de joindre le comptoir.<br>${echapper(e.message)}</p><button class="cta" onclick="charger()">Réessayer</button>`;
+    app.innerHTML = `<p class="centre">Impossible de joindre le comptoir.<br>${echapper(messageErreur(e))}</p><button class="cta" onclick="charger()">Réessayer</button>`;
   }
+}
+
+async function rafraichir() { etat = await demander('etat'); afficher(); }
+
+function afficher() {
+  document.getElementById('nav').hidden = false;
+  document.querySelectorAll('nav [data-vue]').forEach(b => b.classList.toggle('actif', b.dataset.vue === vue));
+  if (vue === 'liste') afficherListe();
+  else if (vue === 'reglages') afficherReglages();
+  else afficherAccueil();
+  window.scrollTo(0, 0);
 }
 
 /* ---------- Accueil ---------- */
 
 function afficherAccueil() {
-  document.getElementById('nav').hidden = false;
   const m = etat.moisOuvert;
   const aCloturer = etat.aujourdhui.slice(0, 7) > m;
   const pos = rythme();
@@ -169,7 +238,7 @@ function afficherAccueil() {
 
   let html = `<h1>${majuscule(nomMois(m))}</h1>`;
   if (aCloturer) html += `<div class="bandeau">Clôture de ${nomMois(m)} à faire</div>`;
-  html += `<div class="seg"><button data-compte="Perso" class="${compte === 'Perso' ? 'on' : ''}">Perso</button><button data-compte="Commun" class="${compte === 'Commun' ? 'on' : ''}">Commun</button></div>`;
+  html += segment(['Perso', 'Commun'], compte, 'data-compte');
 
   enveloppesDe(compte).forEach(e => {
     const depense = etat.depenses.filter(d => d.mois === m && d.enveloppe === e.id).reduce((s, d) => s + d.montant, 0);
@@ -191,104 +260,263 @@ function afficherAccueil() {
   });
   app.innerHTML = html;
   app.querySelectorAll('[data-compte]').forEach(b => b.onclick = () => {
-    compte = b.dataset.compte; memoire.ecrire('compte', compte); afficherAccueil();
+    compte = b.dataset.compte; memoire.ecrire('compte', compte); afficher();
   });
 }
 
-/* ---------- Nouvelle dépense ---------- */
+/* ---------- Liste du mois ---------- */
 
-const saisie = { compte: 'Perso', enveloppe: null };
+function lignesDepenses(liste) {
+  return liste.map(d => {
+    const e = enveloppe(d.enveloppe) || { nom: d.enveloppe, couleur: '#8A8A8A' };
+    const sous = [dateCourte(d.date), d.compte, d.description].filter(Boolean).map(echapper).join(' · ');
+    const droite = aConfirmer === d.id
+      ? `<div class="confirmer"><button data-oui="${d.id}" style="background:var(--texte);color:#fff">Supprimer</button><button data-non style="background:var(--gris)">Non</button></div>`
+      : `<span class="val">${euros(d.montant)}</span>
+         <button class="icone" data-modifier="${d.id}" aria-label="Modifier">${SVG.crayon}</button>
+         <button class="icone" data-supprimer="${d.id}" aria-label="Supprimer">${SVG.poubelle}</button>`;
+    return `<div class="ligne"><div class="carre" style="background:${e.couleur}"></div>
+      <div class="txt"><div class="titre">${echapper(e.nom)}</div><div class="sous">${sous}</div></div>${droite}</div>`;
+  }).join('');
+}
 
-function ouvrirAjout() {
+function afficherListe() {
+  const m = etat.moisOuvert;
+  const garder = d => filtre === 'Tout' || d.compte === filtre;
+  const tri = (a, b) => b.date.localeCompare(a.date);
+  const duMois = etat.depenses.filter(d => d.mois === m && garder(d)).sort(tri);
+  const apres = etat.depenses.filter(d => d.mois > m && garder(d)).sort(tri);
+
+  let html = `<h1>Dépenses de ${nomMois(m)}</h1>` + segment(['Tout', 'Perso', 'Commun'], filtre, 'data-filtre');
+  html += duMois.length ? lignesDepenses(duMois) : `<p class="vide">Aucune dépense pour l'instant.</p>`;
+  if (duMois.length) html += `<div class="total"><span>Total ${filtre === 'Tout' ? 'du mois' : filtre}</span><span>${euros(duMois.reduce((s, d) => s + d.montant, 0))}</span></div>`;
+  if (apres.length) html += `<h2>Déjà saisies pour le mois suivant</h2><p class="note">Elles compteront après la clôture de ${nomMois(m)}.</p>` + lignesDepenses(apres);
+  app.innerHTML = html;
+
+  app.querySelectorAll('[data-filtre]').forEach(b => b.onclick = () => { filtre = b.dataset.filtre; memoire.ecrire('filtre', filtre); afficher(); });
+  app.querySelectorAll('[data-modifier]').forEach(b => b.onclick = () => ouvrirDepense(etat.depenses.find(d => d.id === b.dataset.modifier)));
+  app.querySelectorAll('[data-supprimer]').forEach(b => b.onclick = () => { aConfirmer = b.dataset.supprimer; afficherListe(); });
+  app.querySelectorAll('[data-non]').forEach(b => b.onclick = () => { aConfirmer = null; afficherListe(); });
+  app.querySelectorAll('[data-oui]').forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = '…';
+    try { await demander('supprimer', { id: b.dataset.oui }); aConfirmer = null; toast('Dépense supprimée'); await rafraichir(); }
+    catch (e) { aConfirmer = null; toast(messageErreur(e)); afficherListe(); }
+  });
+}
+
+/* ---------- Réglages ---------- */
+
+function afficherReglages() {
+  const actives = enveloppesDe(compte);
+  const retirees = enveloppesDe(compte, true).filter(e => !e.active);
+  const lieu = compte === 'Perso' ? 'Livret A' : 'livret commun';
+  const totalBudget = actives.reduce((s, e) => s + e.budget, 0);
+
+  let html = `<h1>Réglages</h1>` + segment(['Perso', 'Commun'], compte, 'data-compte');
+  html += `<h2>Mes enveloppes</h2>`;
+  html += actives.map(e => `<div class="ligne"><div class="carre" style="background:${e.couleur}"></div>
+    <div class="txt"><div class="titre">${echapper(e.nom)}</div></div><span class="tag">${e.type}</span>
+    <span class="val" style="min-width:48px;text-align:right">${euros(e.budget)}</span>
+    <button class="icone" data-env="${e.id}" aria-label="Modifier">${SVG.crayon}</button></div>`).join('');
+  html += `<div class="total"><span>Total du mois</span><span>${euros(totalBudget)}</span></div>`;
+  html += `<button class="ajout-env" id="nouvelle-env">+ Ajouter une enveloppe</button>`;
+  if (retirees.length) {
+    html += `<h2>Enveloppes retirées</h2>` + retirees.map(e => `<div class="ligne" style="opacity:.55"><div class="carre" style="background:${e.couleur}"></div>
+      <div class="txt"><div class="titre">${echapper(e.nom)}</div></div><button class="icone" data-env="${e.id}" aria-label="Modifier">${SVG.crayon}</button></div>`).join('');
+  }
+
+  const tirelires = actives.filter(e => e.type === 'tirelire');
+  if (tirelires.length) {
+    html += `<h2>Poches du ${lieu}</h2><p class="note">À corriger seulement si le montant réel de la poche a changé en dehors de l'app.</p>`;
+    html += tirelires.map(e => {
+      const p = etat.poches.find(x => x.enveloppe === e.id);
+      return `<div class="ligne"><div class="carre" style="background:${e.couleur}"></div><div class="txt"><div class="titre">${echapper(e.nom)}</div></div>
+        <span class="val">${euros(p ? p.solde : 0)}</span><button class="icone" data-poche="${e.id}" aria-label="Corriger">${SVG.crayon}</button></div>`;
+    }).join('');
+  }
+  html += `<h2>Ce téléphone</h2><button class="cta clair" id="oublier">Changer de code secret</button>`;
+  app.innerHTML = html;
+
+  app.querySelectorAll('[data-compte]').forEach(b => b.onclick = () => { compte = b.dataset.compte; memoire.ecrire('compte', compte); afficher(); });
+  app.querySelectorAll('[data-env]').forEach(b => b.onclick = () => ouvrirEnveloppe(enveloppe(b.dataset.env)));
+  app.querySelectorAll('[data-poche]').forEach(b => b.onclick = () => ouvrirPoche(b.dataset.poche));
+  document.getElementById('nouvelle-env').onclick = () => ouvrirEnveloppe(null);
+  document.getElementById('oublier').onclick = () => { memoire.effacer('code'); afficherCode(); };
+}
+
+/* ---------- Feuille : nouvelle dépense ou modification ---------- */
+
+const saisie = { compte: 'Perso', enveloppe: null, id: null };
+
+function ouvrirDepense(existante) {
   if (!etat) return;
-  saisie.compte = compte;
-  saisie.enveloppe = null;
+  saisie.id = existante ? existante.id : null;
+  saisie.compte = existante ? existante.compte : compte;
+  saisie.enveloppe = existante ? existante.enveloppe : null;
   const min = etat.moisOuvert + '-01';
+  const valeurMontant = existante ? String(existante.montant).replace('.', ',') : '';
   feuille.innerHTML = `<div class="feuille"><div class="interieur">
-    <div class="entete"><h1>Nouvelle dépense</h1>
-      <button class="fermer" id="fermer" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="montant"><input id="montant" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-label="Montant en euros"><span style="font:700 40px Lora,serif">€</span></div>
+    <div class="entete"><h1>${existante ? 'Modifier la dépense' : 'Nouvelle dépense'}</h1>
+      <button class="fermer" id="fermer" aria-label="Fermer">${SVG.fermer}</button></div>
+    <div class="montant"><input id="montant" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-label="Montant en euros" value="${valeurMontant}"><span style="font:700 40px Lora,serif">€</span></div>
     <div class="lbl">Date</div>
-    <input class="champ" id="date" type="date" value="${etat.aujourdhui}" min="${min}" max="${etat.aujourdhui}">
+    <input class="champ" id="date" type="date" value="${existante ? existante.date : etat.aujourdhui}" min="${min}" max="${etat.aujourdhui}">
     <div class="lbl">Compte</div>
-    <div class="seg" style="margin:0" id="seg-compte">
-      <button data-c="Perso" class="${saisie.compte === 'Perso' ? 'on' : ''}">Perso</button>
-      <button data-c="Commun" class="${saisie.compte === 'Commun' ? 'on' : ''}">Commun</button></div>
+    <div id="seg-compte">${segment(['Perso', 'Commun'], saisie.compte, 'data-c')}</div>
     <div class="lbl">Enveloppe</div>
     <div class="grille" id="grille"></div>
     <div class="lbl">Description (facultatif)</div>
-    <input class="champ" id="description" maxlength="80" placeholder="Leclerc" autocomplete="off">
+    <input class="champ" id="description" maxlength="80" placeholder="Leclerc" autocomplete="off" value="${existante ? echapper(existante.description) : ''}">
     <button class="cta" id="enregistrer" style="margin-top:18px">Enregistrer</button>
-    <p class="erreur" id="err-ajout"></p>
+    <p class="erreur" id="err-feuille"></p>
   </div></div>`;
   dessinerPastilles();
-  document.getElementById('fermer').onclick = fermerAjout;
+  document.getElementById('fermer').onclick = fermerFeuille;
   document.querySelectorAll('#seg-compte [data-c]').forEach(b => b.onclick = () => {
     saisie.compte = b.dataset.c; saisie.enveloppe = null;
     document.querySelectorAll('#seg-compte [data-c]').forEach(x => x.classList.toggle('on', x === b));
     dessinerPastilles();
   });
-  document.getElementById('enregistrer').onclick = enregistrer;
-  ['montant', 'date', 'description'].forEach(id => document.getElementById(id).oninput = () => { document.getElementById('err-ajout').textContent = ''; });
+  document.getElementById('enregistrer').onclick = enregistrerDepense;
+  ['montant', 'date', 'description'].forEach(id => document.getElementById(id).oninput = effacerErreur);
   // Le champ s'ajuste à la longueur du montant, pour que le € reste collé au chiffre.
   const champMontant = document.getElementById('montant');
   const ajuster = () => { champMontant.style.width = (Math.max(champMontant.value.length, 4) + 0.6) + 'ch'; };
   champMontant.addEventListener('input', ajuster);
   ajuster();
-  champMontant.focus();
+  if (!existante) champMontant.focus();
 }
 
 function dessinerPastilles() {
   const grille = document.getElementById('grille');
   grille.innerHTML = enveloppesDe(saisie.compte).map(e => {
     const choisie = e.id === saisie.enveloppe;
-    return `<button class="pastille" data-env="${e.id}" style="background:${choisie ? e.couleur : griser(e.couleur)}">${echapper(e.nom)}${choisie ? COCHE : ''}</button>`;
+    return `<button class="pastille" data-p="${e.id}" style="background:${choisie ? e.couleur : griser(e.couleur)}">${echapper(e.nom)}${choisie ? SVG.coche : ''}</button>`;
   }).join('');
-  grille.querySelectorAll('[data-env]').forEach(b => b.onclick = () => {
-    saisie.enveloppe = b.dataset.env;
-    document.getElementById('err-ajout').textContent = '';
-    dessinerPastilles();
-  });
+  grille.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { saisie.enveloppe = b.dataset.p; effacerErreur(); dessinerPastilles(); });
 }
 
-function fermerAjout() { feuille.innerHTML = ''; }
+function effacerErreur() { const e = document.getElementById('err-feuille'); if (e) e.textContent = ''; }
+function fermerFeuille() { feuille.innerHTML = ''; }
 
-async function enregistrer() {
-  const err = document.getElementById('err-ajout');
-  const brut = document.getElementById('montant').value.replace(/\s/g, '').replace(',', '.');
-  const montant = Number(brut);
+async function enregistrerDepense() {
+  const err = document.getElementById('err-feuille');
+  const brut = document.getElementById('montant').value;
+  const montant = nombre(brut);
   const date = document.getElementById('date').value;
-  if (!brut || isNaN(montant) || montant <= 0) { err.textContent = 'Entre un montant.'; return; }
+  if (!brut.trim() || isNaN(montant) || montant <= 0) { err.textContent = 'Entre un montant.'; return; }
   if (!saisie.enveloppe) { err.textContent = 'Choisis une enveloppe.'; return; }
   if (!date) { err.textContent = 'Choisis une date.'; return; }
   if (date.slice(0, 7) < etat.moisOuvert) { err.textContent = 'Ce mois est déjà clôturé.'; return; }
 
   const bouton = document.getElementById('enregistrer');
   bouton.disabled = true; bouton.textContent = 'Enregistrement…';
+  const donnees = { date, enveloppe: saisie.enveloppe, montant, description: document.getElementById('description').value };
   try {
-    await demander('ajouter', { date, enveloppe: saisie.enveloppe, montant, description: document.getElementById('description').value });
-    compte = saisie.compte; memoire.ecrire('compte', compte);
-    fermerAjout();
-    toast('Dépense enregistrée');
-    etat = await demander('etat');
-    afficherAccueil();
+    if (saisie.id) await demander('modifier', Object.assign({ id: saisie.id }, donnees));
+    else await demander('ajouter', donnees);
+    if (vue === 'accueil') { compte = saisie.compte; memoire.ecrire('compte', compte); }
+    fermerFeuille();
+    toast(saisie.id ? 'Dépense modifiée' : 'Dépense enregistrée');
+    await rafraichir();
   } catch (e) {
     bouton.disabled = false; bouton.textContent = 'Enregistrer';
-    err.textContent = e.message === 'Failed to fetch' || e.message === 'Load failed'
-      ? 'Pas de connexion. Réessaie.' : e.message;
+    err.textContent = messageErreur(e);
   }
 }
 
-/* ---------- Divers ---------- */
+/* ---------- Feuille : enveloppe ---------- */
 
-function toast(texte) {
-  const t = document.getElementById('toast');
-  t.textContent = texte; t.classList.add('on');
-  setTimeout(() => t.classList.remove('on'), 1800);
+const reglage = { couleur: PALETTE[0], type: 'robinet' };
+
+function ouvrirEnveloppe(e) {
+  const nouvelle = !e;
+  const memeCompte = enveloppesDe(compte, true);
+  reglage.couleur = e ? e.couleur : PALETTE[0];
+  reglage.type = e ? e.type : 'robinet';
+  const ordre = e ? e.ordre : (memeCompte.reduce((m, x) => Math.max(m, x.ordre), 0) + 1);
+  feuille.innerHTML = `<div class="feuille"><div class="interieur">
+    <div class="entete"><h1>${nouvelle ? 'Nouvelle enveloppe' : 'Modifier l\'enveloppe'}</h1>
+      <button class="fermer" id="fermer" aria-label="Fermer">${SVG.fermer}</button></div>
+    <p class="note">Compte ${compte}</p>
+    <div class="lbl">Nom</div><input class="champ" id="env-nom" maxlength="40" value="${e ? echapper(e.nom) : ''}" placeholder="Courses">
+    <div class="lbl">Budget mensuel (€)</div><input class="champ" id="env-budget" inputmode="decimal" value="${e ? String(e.budget).replace('.', ',') : ''}" placeholder="40">
+    <div class="lbl">Couleur</div><div class="nuancier" id="nuancier"></div>
+    <div class="lbl">Type</div><div id="seg-type">${segment(['robinet', 'tirelire'], reglage.type, 'data-t')}</div>
+    <p class="note" id="aide-type"></p>
+    <div class="lbl">Position dans la liste</div><input class="champ" id="env-ordre" inputmode="numeric" value="${ordre}">
+    <button class="cta" id="enregistrer" style="margin-top:18px">Enregistrer</button>
+    ${e ? `<button class="cta clair" id="activer">${e.active ? 'Retirer cette enveloppe' : 'Réactiver cette enveloppe'}</button>` : ''}
+    <p class="erreur" id="err-feuille"></p>
+    ${e && e.active ? '<p class="note">Retirer une enveloppe la cache de l\'app sans effacer son historique.</p>' : ''}
+  </div></div>`;
+  const dessiner = () => {
+    const couleurs = PALETTE.includes(reglage.couleur) ? PALETTE : PALETTE.concat(reglage.couleur);
+    document.getElementById('nuancier').innerHTML = couleurs.map(c => `<button data-coul="${c}" class="${c === reglage.couleur ? 'on' : ''}" style="background:${c}" aria-label="${c}"></button>`).join('');
+    document.querySelectorAll('[data-coul]').forEach(b => b.onclick = () => { reglage.couleur = b.dataset.coul; dessiner(); });
+    document.getElementById('aide-type').textContent = reglage.type === 'tirelire'
+      ? 'Tirelire : à la clôture, le reste part dans sa poche et un dépassement y est pris.'
+      : 'Robinet : à la clôture, le reste entre dans le solde à virer sur l\'épargne.';
+  };
+  dessiner();
+  document.querySelectorAll('#seg-type [data-t]').forEach(b => b.onclick = () => {
+    reglage.type = b.dataset.t;
+    document.querySelectorAll('#seg-type [data-t]').forEach(x => x.classList.toggle('on', x === b));
+    dessiner();
+  });
+  document.getElementById('fermer').onclick = fermerFeuille;
+  document.getElementById('enregistrer').onclick = () => enregistrerEnveloppe(e, e ? e.active : true);
+  if (e) document.getElementById('activer').onclick = () => enregistrerEnveloppe(e, !e.active);
 }
-document.querySelectorAll('[data-bientot]').forEach(b => b.onclick = () => toast('Arrive à une prochaine étape'));
-document.getElementById('btn-accueil').onclick = () => { fermerAjout(); charger(); };
-document.getElementById('btn-ajouter').onclick = ouvrirAjout;
+
+async function enregistrerEnveloppe(e, active) {
+  const err = document.getElementById('err-feuille');
+  const nom = document.getElementById('env-nom').value.trim();
+  const budget = nombre(document.getElementById('env-budget').value);
+  const ordre = nombre(document.getElementById('env-ordre').value);
+  if (!nom) { err.textContent = 'Donne un nom à l\'enveloppe.'; return; }
+  if (isNaN(budget) || budget < 0) { err.textContent = 'Entre un budget.'; return; }
+  document.querySelectorAll('.feuille .cta').forEach(b => b.disabled = true);
+  try {
+    await demander('majEnveloppe', { id: e ? e.id : undefined, compte, nom, couleur: reglage.couleur, type: reglage.type, budget, ordre: isNaN(ordre) ? 0 : ordre, active });
+    fermerFeuille();
+    toast(e && active !== e.active ? (active ? 'Enveloppe réactivée' : 'Enveloppe retirée') : 'Enveloppe enregistrée');
+    await rafraichir();
+  } catch (x) {
+    document.querySelectorAll('.feuille .cta').forEach(b => b.disabled = false);
+    err.textContent = messageErreur(x);
+  }
+}
+
+/* ---------- Feuille : poche ---------- */
+
+function ouvrirPoche(id) {
+  const e = enveloppe(id);
+  const p = etat.poches.find(x => x.enveloppe === id);
+  feuille.innerHTML = `<div class="feuille"><div class="interieur">
+    <div class="entete"><h1>Poche ${echapper(e.nom)}</h1><button class="fermer" id="fermer" aria-label="Fermer">${SVG.fermer}</button></div>
+    <p class="note">Montant réellement présent dans cette poche, sur ton ${compte === 'Perso' ? 'Livret A' : 'livret commun'}.</p>
+    <div class="lbl">Solde (€)</div><input class="champ" id="poche-solde" inputmode="decimal" value="${String(p ? p.solde : 0).replace('.', ',')}">
+    <button class="cta" id="enregistrer" style="margin-top:18px">Enregistrer</button><p class="erreur" id="err-feuille"></p>
+  </div></div>`;
+  document.getElementById('fermer').onclick = fermerFeuille;
+  document.getElementById('enregistrer').onclick = async () => {
+    const solde = nombre(document.getElementById('poche-solde').value);
+    const err = document.getElementById('err-feuille');
+    if (isNaN(solde)) { err.textContent = 'Entre un montant.'; return; }
+    try { await demander('majPoche', { enveloppe: id, solde }); fermerFeuille(); toast('Poche mise à jour'); await rafraichir(); }
+    catch (x) { err.textContent = messageErreur(x); }
+  };
+}
+
+/* ---------- Boutons de la barre du bas ---------- */
+
+document.querySelectorAll('nav [data-vue]').forEach(b => b.onclick = () => {
+  fermerFeuille(); aConfirmer = null; vue = b.dataset.vue;
+  if (etat) afficher(); else charger();
+});
+document.getElementById('btn-ajouter').onclick = () => ouvrirDepense();
+document.getElementById('btn-fin').onclick = () => toast('La fin de mois arrive à la prochaine étape');
 
 // Recharge les chiffres quand on revient sur l'app (sauf pendant une saisie).
 document.addEventListener('visibilitychange', () => { if (!document.hidden && etat && !feuille.innerHTML) charger(); });
