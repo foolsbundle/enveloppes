@@ -17,6 +17,7 @@
   html, body { background:var(--fond); color:var(--texte); font-family:'Open Sans',sans-serif; -webkit-tap-highlight-color:transparent; }
   body { padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 96px); max-width:520px; margin:0 auto; }
   h1 { font-family:'Lora',serif; font-weight:700; font-size:34px; line-height:1.1; }
+  button { font-family:inherit; color:inherit; }
   .seg { display:flex; gap:8px; margin:14px 0 4px; }
   .seg button { flex:1; border:0; padding:11px; border-radius:14px; font:600 15px 'Open Sans',sans-serif; background:var(--gris); color:var(--texte); }
   .seg button.on { background:var(--texte); color:#fff; }
@@ -30,28 +31,45 @@
   .depense { position:absolute; left:16px; bottom:12px; font-size:15px; }
   .reste { position:absolute; right:16px; bottom:6px; font-family:'Lora',serif; font-weight:700; font-size:34px; line-height:1.1; }
   .poche { font-size:12px; color:var(--doux); margin:5px 0 0 6px; }
-  nav { position:fixed; left:0; right:0; bottom:0; background:var(--fond); border-top:1px solid var(--gris); padding:10px 24px calc(env(safe-area-inset-bottom) + 10px); display:flex; justify-content:space-between; align-items:center; }
-  nav button { border:0; background:none; font-size:24px; color:var(--texte); width:44px; height:44px; }
+  nav { position:fixed; left:0; right:0; bottom:0; background:var(--fond); border-top:1px solid var(--gris); padding:10px 24px calc(env(safe-area-inset-bottom) + 10px); display:flex; justify-content:space-between; align-items:center; z-index:5; }
+  nav button { border:0; background:none; width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--texte); }
   nav button.off { opacity:.35; }
   nav .plus { background:var(--texte); color:#fff; border-radius:14px; }
+  svg.ic { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   .centre { text-align:center; margin-top:30vh; color:var(--doux); }
   .code { margin-top:24vh; }
   .code p { color:var(--doux); margin:10px 0 18px; }
-  .code input { width:100%; padding:14px; font-size:18px; border:1px solid #C9C3B3; border-radius:14px; background:#fff; }
-  .cta { width:100%; margin-top:12px; padding:14px; border:0; border-radius:16px; background:var(--texte); color:#fff; font:600 16px 'Open Sans',sans-serif; }
+  input.champ { width:100%; padding:14px; font:16px 'Open Sans',sans-serif; border:1px solid #C9C3B3; border-radius:14px; background:#fff; color:var(--texte); }
+  .cta { width:100%; margin-top:12px; padding:15px; border:0; border-radius:16px; background:var(--texte); color:#fff; font:600 16px 'Open Sans',sans-serif; }
+  .cta:disabled { opacity:.5; }
   .erreur { color:#B3261E; font-size:14px; margin-top:10px; min-height:20px; }
-  .toast { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 84px); transform:translateX(-50%); background:var(--texte); color:#fff; padding:10px 16px; border-radius:12px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; }
+  .toast { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 84px); transform:translateX(-50%); background:var(--texte); color:#fff; padding:10px 16px; border-radius:12px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:20; white-space:nowrap; }
   .toast.on { opacity:1; }
+  /* Nouvelle dépense */
+  .feuille { position:fixed; inset:0; background:var(--fond); z-index:10; overflow-y:auto; padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px); }
+  .feuille .interieur { max-width:520px; margin:0 auto; }
+  .entete { display:flex; justify-content:space-between; align-items:center; }
+  .entete h1 { font-size:28px; }
+  .fermer { border:0; background:none; width:44px; height:44px; display:flex; align-items:center; justify-content:center; }
+  .montant { display:flex; justify-content:center; align-items:baseline; margin:22px 0 4px; }
+  .montant input { width:4.6ch; max-width:80%; text-align:right; border:0; background:none; font:700 56px 'Lora',serif; color:var(--texte); outline:none; }
+  .montant input::placeholder { color:#C9C3B3; }
+  .lbl { font-size:12px; color:var(--doux); margin:14px 0 6px; }
+  .grille { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .pastille { position:relative; border:0; border-radius:14px; padding:12px 30px 12px 12px; color:#fff; font:600 13px 'Open Sans',sans-serif; text-align:left; min-height:46px; }
+  .pastille .coche { position:absolute; right:10px; top:50%; transform:translateY(-50%); }
+  input[type=date].champ { -webkit-appearance:none; appearance:none; min-height:48px; }
 </style>
 </head>
 <body>
 <div id="app"><p class="centre">Chargement…</p></div>
+<div id="feuille"></div>
 <nav id="nav" hidden>
-  <button aria-label="Accueil"><i>⌂</i></button>
-  <button class="off" aria-label="Liste du mois" data-bientot>☰</button>
-  <button class="plus" aria-label="Nouvelle dépense" data-bientot>+</button>
-  <button class="off" aria-label="Fin de mois" data-bientot>✓</button>
-  <button class="off" aria-label="Réglages" data-bientot>⚙</button>
+  <button aria-label="Accueil" id="btn-accueil"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></button>
+  <button class="off" aria-label="Liste du mois" data-bientot><svg class="ic" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+  <button class="plus" aria-label="Nouvelle dépense" id="btn-ajouter"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="off" aria-label="Fin de mois" data-bientot><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M9 13l2 2 4-4"/></svg></button>
+  <button class="off" aria-label="Réglages" data-bientot><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
 </nav>
 <div class="toast" id="toast"></div>
 
@@ -59,6 +77,7 @@
 // Adresse du comptoir (Apps Script). Elle n'est pas secrète : c'est le code secret qui protège les données.
 const COMPTOIR = 'https://script.google.com/macros/s/AKfycbwU9rxuZbYvl8JRJema1DNDQ9SZ4kQIQ2fVuhPSg957D4jAl7d0mvUbE-GkNRHASaX1UQ/exec';
 const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const COCHE = '<svg class="ic coche" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5L20 7"/></svg>';
 
 // Petite mémoire du téléphone (le code secret et le dernier onglet). Si elle est effacée, l'app redemande le code.
 const memoire = {
@@ -70,6 +89,7 @@ const memoire = {
 let etat = null;
 let compte = memoire.lire('compte') || 'Perso';
 const app = document.getElementById('app');
+const feuille = document.getElementById('feuille');
 
 async function demander(action, donnees) {
   const reponse = await fetch(COMPTOIR, {
@@ -91,8 +111,9 @@ function griser(hex) {
   return '#' + c.map(v => Math.round(v * 0.5 + 138 * 0.5).toString(16).padStart(2, '0')).join('');
 }
 
+function echapper(t) { return String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
 function nomMois(m) { return MOIS[Number(m.slice(5, 7)) - 1]; }
-
+function majuscule(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
 function joursDansMois(m) { const [a, mm] = m.split('-').map(Number); return new Date(a, mm, 0).getDate(); }
 
 // Où on en est dans le mois ouvert : jour du mois ÷ nombre de jours. 100 % si le mois est terminé.
@@ -102,10 +123,16 @@ function rythme() {
   return Number(auj.slice(8, 10)) / joursDansMois(m) * 100;
 }
 
+function enveloppesDe(c) {
+  return etat.enveloppes.filter(e => e.active && e.compte === c).sort((a, b) => a.ordre - b.ordre);
+}
+
+/* ---------- Code secret ---------- */
+
 function afficherCode(message) {
   document.getElementById('nav').hidden = true;
   app.innerHTML = `<div class="code"><h1>Bonjour Marie</h1><p>Entre ton code secret. Il ne te sera demandé qu'une fois sur ce téléphone.</p>
-    <input id="champ" type="password" autocomplete="current-password" placeholder="Code secret">
+    <input class="champ" id="champ" type="password" autocomplete="current-password" placeholder="Code secret">
     <button class="cta" id="valider">Entrer</button><p class="erreur" id="err">${message || ''}</p></div>`;
   const valider = () => {
     const v = document.getElementById('champ').value.trim();
@@ -117,30 +144,34 @@ function afficherCode(message) {
   document.getElementById('champ').onkeydown = e => { if (e.key === 'Enter') valider(); };
 }
 
+/* ---------- Chargement ---------- */
+
 async function charger() {
   if (!memoire.lire('code')) return afficherCode();
   try {
     etat = await demander('etat');
     afficherAccueil();
+    if (location.hash === '#ajouter') { history.replaceState(null, '', location.pathname); ouvrirAjout(); }
   } catch (e) {
     if (e.message === 'Code incorrect.') { memoire.effacer('code'); return afficherCode('Code incorrect. Réessaie.'); }
-    app.innerHTML = `<p class="centre">Impossible de joindre le comptoir.<br>${e.message}</p><button class="cta" onclick="charger()">Réessayer</button>`;
+    app.innerHTML = `<p class="centre">Impossible de joindre le comptoir.<br>${echapper(e.message)}</p><button class="cta" onclick="charger()">Réessayer</button>`;
   }
 }
+
+/* ---------- Accueil ---------- */
 
 function afficherAccueil() {
   document.getElementById('nav').hidden = false;
   const m = etat.moisOuvert;
   const aCloturer = etat.aujourdhui.slice(0, 7) > m;
   const pos = rythme();
-  const enveloppes = etat.enveloppes.filter(e => e.active && e.compte === compte).sort((a, b) => a.ordre - b.ordre);
   const lieuPoche = compte === 'Perso' ? 'Poche Livret A' : 'Poche livret commun';
 
-  let html = `<h1>${nomMois(m).charAt(0).toUpperCase() + nomMois(m).slice(1)}</h1>`;
+  let html = `<h1>${majuscule(nomMois(m))}</h1>`;
   if (aCloturer) html += `<div class="bandeau">Clôture de ${nomMois(m)} à faire</div>`;
   html += `<div class="seg"><button data-compte="Perso" class="${compte === 'Perso' ? 'on' : ''}">Perso</button><button data-compte="Commun" class="${compte === 'Commun' ? 'on' : ''}">Commun</button></div>`;
 
-  enveloppes.forEach(e => {
+  enveloppesDe(compte).forEach(e => {
     const depense = etat.depenses.filter(d => d.mois === m && d.enveloppe === e.id).reduce((s, d) => s + d.montant, 0);
     const reste = e.budget - depense;
     const depasse = reste < 0;
@@ -149,7 +180,7 @@ function afficherAccueil() {
       <div class="fill" style="width:${largeur}%;background:${e.couleur}"></div>
       ${depasse ? '<div class="hachures"></div>' : ''}
       <div class="rythme" style="left:${pos}%"></div>
-      <div class="nom">${e.nom} - ${euros(e.budget)}</div>
+      <div class="nom">${echapper(e.nom)} - ${euros(e.budget)}</div>
       <div class="depense">${euros(depense)}</div>
       <div class="reste">${depasse ? '−' : ''}${euros(Math.abs(reste))}</div></div>`;
     if (e.type === 'tirelire') {
@@ -164,16 +195,103 @@ function afficherAccueil() {
   });
 }
 
+/* ---------- Nouvelle dépense ---------- */
+
+const saisie = { compte: 'Perso', enveloppe: null };
+
+function ouvrirAjout() {
+  if (!etat) return;
+  saisie.compte = compte;
+  saisie.enveloppe = null;
+  const min = etat.moisOuvert + '-01';
+  feuille.innerHTML = `<div class="feuille"><div class="interieur">
+    <div class="entete"><h1>Nouvelle dépense</h1>
+      <button class="fermer" id="fermer" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="montant"><input id="montant" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-label="Montant en euros"><span style="font:700 40px Lora,serif">€</span></div>
+    <div class="lbl">Date</div>
+    <input class="champ" id="date" type="date" value="${etat.aujourdhui}" min="${min}" max="${etat.aujourdhui}">
+    <div class="lbl">Compte</div>
+    <div class="seg" style="margin:0" id="seg-compte">
+      <button data-c="Perso" class="${saisie.compte === 'Perso' ? 'on' : ''}">Perso</button>
+      <button data-c="Commun" class="${saisie.compte === 'Commun' ? 'on' : ''}">Commun</button></div>
+    <div class="lbl">Enveloppe</div>
+    <div class="grille" id="grille"></div>
+    <div class="lbl">Description (facultatif)</div>
+    <input class="champ" id="description" maxlength="80" placeholder="Leclerc" autocomplete="off">
+    <button class="cta" id="enregistrer" style="margin-top:18px">Enregistrer</button>
+    <p class="erreur" id="err-ajout"></p>
+  </div></div>`;
+  dessinerPastilles();
+  document.getElementById('fermer').onclick = fermerAjout;
+  document.querySelectorAll('#seg-compte [data-c]').forEach(b => b.onclick = () => {
+    saisie.compte = b.dataset.c; saisie.enveloppe = null;
+    document.querySelectorAll('#seg-compte [data-c]').forEach(x => x.classList.toggle('on', x === b));
+    dessinerPastilles();
+  });
+  document.getElementById('enregistrer').onclick = enregistrer;
+  ['montant', 'date', 'description'].forEach(id => document.getElementById(id).oninput = () => { document.getElementById('err-ajout').textContent = ''; });
+  // Le champ s'ajuste à la longueur du montant, pour que le € reste collé au chiffre.
+  const champMontant = document.getElementById('montant');
+  const ajuster = () => { champMontant.style.width = (Math.max(champMontant.value.length, 4) + 0.6) + 'ch'; };
+  champMontant.addEventListener('input', ajuster);
+  ajuster();
+  champMontant.focus();
+}
+
+function dessinerPastilles() {
+  const grille = document.getElementById('grille');
+  grille.innerHTML = enveloppesDe(saisie.compte).map(e => {
+    const choisie = e.id === saisie.enveloppe;
+    return `<button class="pastille" data-env="${e.id}" style="background:${choisie ? e.couleur : griser(e.couleur)}">${echapper(e.nom)}${choisie ? COCHE : ''}</button>`;
+  }).join('');
+  grille.querySelectorAll('[data-env]').forEach(b => b.onclick = () => {
+    saisie.enveloppe = b.dataset.env;
+    document.getElementById('err-ajout').textContent = '';
+    dessinerPastilles();
+  });
+}
+
+function fermerAjout() { feuille.innerHTML = ''; }
+
+async function enregistrer() {
+  const err = document.getElementById('err-ajout');
+  const brut = document.getElementById('montant').value.replace(/\s/g, '').replace(',', '.');
+  const montant = Number(brut);
+  const date = document.getElementById('date').value;
+  if (!brut || isNaN(montant) || montant <= 0) { err.textContent = 'Entre un montant.'; return; }
+  if (!saisie.enveloppe) { err.textContent = 'Choisis une enveloppe.'; return; }
+  if (!date) { err.textContent = 'Choisis une date.'; return; }
+  if (date.slice(0, 7) < etat.moisOuvert) { err.textContent = 'Ce mois est déjà clôturé.'; return; }
+
+  const bouton = document.getElementById('enregistrer');
+  bouton.disabled = true; bouton.textContent = 'Enregistrement…';
+  try {
+    await demander('ajouter', { date, enveloppe: saisie.enveloppe, montant, description: document.getElementById('description').value });
+    compte = saisie.compte; memoire.ecrire('compte', compte);
+    fermerAjout();
+    toast('Dépense enregistrée');
+    etat = await demander('etat');
+    afficherAccueil();
+  } catch (e) {
+    bouton.disabled = false; bouton.textContent = 'Enregistrer';
+    err.textContent = e.message === 'Failed to fetch' || e.message === 'Load failed'
+      ? 'Pas de connexion. Réessaie.' : e.message;
+  }
+}
+
+/* ---------- Divers ---------- */
+
 function toast(texte) {
   const t = document.getElementById('toast');
   t.textContent = texte; t.classList.add('on');
   setTimeout(() => t.classList.remove('on'), 1800);
 }
-document.querySelectorAll('[data-bientot]').forEach(b => b.onclick = () => toast('Arrive à la prochaine étape'));
-document.querySelector('nav button').onclick = () => charger();
+document.querySelectorAll('[data-bientot]').forEach(b => b.onclick = () => toast('Arrive à une prochaine étape'));
+document.getElementById('btn-accueil').onclick = () => { fermerAjout(); charger(); };
+document.getElementById('btn-ajouter').onclick = ouvrirAjout;
 
-// Recharge les chiffres quand on revient sur l'app.
-document.addEventListener('visibilitychange', () => { if (!document.hidden && etat) charger(); });
+// Recharge les chiffres quand on revient sur l'app (sauf pendant une saisie).
+document.addEventListener('visibilitychange', () => { if (!document.hidden && etat && !feuille.innerHTML) charger(); });
 
 charger();
 </script>
